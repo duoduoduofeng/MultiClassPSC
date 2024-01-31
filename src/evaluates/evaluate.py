@@ -16,28 +16,8 @@ def load_rs(rs_file):
 				continue
 
 			parts = line.strip().split("\t")
-			real_distance = int(float(parts[4]))
-			predict_distance = json.loads(parts[5])[0]
-			discrete_predict_distance = -1
-
-			# if real_distance == 0:
-				# print(line)
-
-			if predict_distance <= 0.5:
-				discrete_predict_distance = 0
-			elif predict_distance <= 1.8:
-				discrete_predict_distance = 1
-			elif predict_distance <= 3.5:
-				discrete_predict_distance = 2
-				# print(line)
-			elif predict_distance <= 6:
-				discrete_predict_distance = 4
-			elif predict_distance <= 12:
-				discrete_predict_distance = 8
-			elif predict_distance <= 30:
-				discrete_predict_distance = 16
-			else:
-				discrete_predict_distance = -1
+			real_distance = int(parts[4])
+			discrete_predict_distance = int(parts[6])
 
 			isright = 0
 			if real_distance == discrete_predict_distance:
@@ -105,7 +85,6 @@ def load_rs(rs_file):
 
 
 if __name__ == "__main__":
-	# rs_file = "../../generated_data/whole_pdbs/datasets/try_tp_3/result/predict_result.validate.txt.20240119_014953"
 	rs_file = sys.argv[1]
 	recall_dict, precision_dict = load_rs(rs_file)
 	print(json.dumps(recall_dict))
