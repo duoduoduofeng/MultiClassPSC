@@ -12,11 +12,11 @@ from model.process import *
 
 
 if __name__ == "__main__":
-    common_path = "../generated_data/datasets/trial"
+    common_path = "../generated_data/datasets/try_cl_1000001"
     
     ### 1. Training
     dataset_file = f"{common_path}/data/sample_proteins_dataset.train.txt"
-    epoch_times = 20
+    epoch_times = 200
 
     timestamp = time.time()
     datetime_object = datetime.fromtimestamp(timestamp)
@@ -29,15 +29,15 @@ if __name__ == "__main__":
     train_log = f"{common_path}/logs/train.log.{dt_object}"
     print(f"model_save_file: {model_save_file}, \ntrain_log: {train_log}\n")
     
-    the_batch_size = 32
-    class_num = 5
+    the_batch_size = 3000
+    class_num = 4
     train(dataset_file, model_save_file, train_log, the_device, epoch_times, the_batch_size, class_num)
 
     ### 2. Prediction
     validate_dataset_file = f"{common_path}/data/sample_proteins_dataset.validate.txt"
     predict_result_file = f"{common_path}/result/predict_result.validate.txt.{dt_object}"
-    predict(model_save_file, validate_dataset_file, predict_result_file, the_device)
+    predict(model_save_file, validate_dataset_file, predict_result_file, the_device, class_num)
 
     validate_dataset_file = f"{common_path}/data/sample_proteins_dataset.excluded_validate.txt"
     predict_result_file = f"{common_path}/result/predict_result.excluded_validate.txt.{dt_object}"
-    predict(model_save_file, validate_dataset_file, predict_result_file, the_device)
+    predict(model_save_file, validate_dataset_file, predict_result_file, the_device, class_num)

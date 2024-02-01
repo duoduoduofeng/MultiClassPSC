@@ -116,7 +116,7 @@ def train(dataset_file, model_save_file, train_log, the_device = 'cpu', \
 
 
 
-def predict(model_save_file, dataset_file, predict_result_file, the_device = "cpu"):
+def predict(model_save_file, dataset_file, predict_result_file, the_device = "cpu", class_num = 5):
     print(f"=************= Start predicting... on {the_device}\n")
 
     the_embedding_dim = 128
@@ -125,7 +125,8 @@ def predict(model_save_file, dataset_file, predict_result_file, the_device = "cp
     # Set the model to evaluation mode (important if you have dropout layers)
     model = ProteinDistanceModel(
         embedding_dim=the_embedding_dim, 
-        hidden_dim=the_hidden_dim)
+        hidden_dim=the_hidden_dim, 
+        num_classes=class_num)
     
     if the_device != "cpu":
         model.load_state_dict(torch.load(model_save_file))
