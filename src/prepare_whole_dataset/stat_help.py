@@ -5,6 +5,10 @@ import copy
 import math
 from itertools import combinations
 
+import matplotlib.pyplot as plt
+import numpy as np
+from collections import Counter
+
 
 """
 Count the frequency of each {pdb_id, chain_id} pair.
@@ -133,8 +137,99 @@ def stat_lineage(reserved_proteins):
 				stats[node][info[node]] = 1
 			else:
 				stats[node][info[node]] = stats[node][info[node]] + 1
-	print(json.dumps(stats))
-	return stats
+	
+	# print(json.dumps(stats))
+
+	for nodename in ["CF", "SF", "FA", "rep_id"]:
+		# plot_dis(stats, nodename)
+		# plot_dis(stats, nodename, 100)
+		# plot_dis(stats, nodename, 1000)
+		plot_scatter(stats, nodename)
+
+	# return stats
+
+
+def plot_dis(stats, nodename, th = 0):
+	# Data from the list	
+	data = list(stats[nodename].values())
+	# if filter
+	if th > 0:
+		data = [x for x in data if x <= th]
+	# print(len(data))
+	# print(data)
+	# print()
+
+	# thebins = [0, 20, 50, 100, 200, 500, 1000, 2000, 5000, 7000]
+
+	# Creating bar chart
+	plt.clf()
+	plt.hist(data, bins=50, color='skyblue', edgecolor='black')
+	# plt.xticks(thebins)
+	plt.xlabel('Value')
+	plt.ylabel('Frequency')
+	plt.title(f"Distribution of protein count of different {nodename} in CL=1000001.")
+
+	# Saving the bar chart as an image
+	bar_chart_name = f"../../generated_data/statistics/{nodename}.cl_1000001.bar_chart.png"
+	if th > 0:
+		bar_chart_name = f"../../generated_data/statistics/{nodename}.cl_1000001.lt_{th}.bar_chart.png"
+	plt.savefig(bar_chart_name)
+
+	# Calculating statistical measures
+	mean_value = np.mean(data)
+	median_value = np.median(data)
+	mode_value = Counter(data).most_common(1)[0][0]
+	std_dev = np.std(data)
+	variance = np.var(data)
+	data_range = np.max(data) - np.min(data)
+	minv, q1, q3, maxv = np.percentile(data, [0, 25, 75, 100])
+
+	# Displaying statistical measures
+	stat_file = f"../../generated_data/statistics/{nodename}.cl_1000001.stats"
+	if th > 0:
+		stat_file = f"../../generated_data/statistics/{nodename}.cl_1000001.lt_{th}.stats"
+	with open(stat_file, 'w') as fout:
+		fout.write(f"Mean: {mean_value}\n")
+		fout.write(f"Median: {median_value}\n")
+		fout.write(f"Mode: {mode_value}\n")
+		fout.write(f"Standard Deviation: {std_dev}\n")
+		fout.write(f"Variance: {variance}\n")
+		fout.write(f"Range: {data_range}\n")
+		fout.write(f"Minimum: {minv}\n")
+		fout.write(f"1st Quartile (Q1): {q1}\n")
+		fout.write(f"3rd Quartile (Q3): {q3}\n")
+		fout.write(f"Maximum: {maxv}\n")
+
+
+def plot_scatter(stats, nodename, th = 0):
+	# Data from the list	
+	data = list(stats[nodename].values())
+	# if filter
+	if th > 0:
+		data = [x for x in data if x <= th]
+
+	# 使用Counter类计数
+	counter = Counter(data)
+
+	# 将计数结果分解成x和y坐标
+	x_values = sorted(counter.keys())
+	y_values = [counter[x] for x in x_values]
+
+	# 绘制折线图
+	plt.plot(x_values, y_values, linestyle='-')
+
+	# 添加标签和标题
+	plt.xlabel('Value')
+	plt.ylabel('Count')
+	plt.title('Line Plot of Data Counts')
+
+	# 显示图形
+	# Saving the bar chart as an image
+	sacatter_chart_name = f"../../generated_data/statistics/{nodename}.cl_1000001.scatter.png"
+	if th > 0:
+		sacatter_chart_name = f"../../generated_data/statistics/{nodename}.cl_1000001.lt_{th}.scatter.png"
+	plt.savefig(sacatter_chart_name)
+
 
 
 if __name__ == "__main__":
