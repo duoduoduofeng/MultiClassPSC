@@ -1,7 +1,9 @@
 #!/bin/bash
 import json
 import sys
-from sklearn.metrics import precision_score, recall_score, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, f1_score
+from sklearn.metrics import classification_report, confusion_matrix
+
 
 
 def load_all_rs(rs_file):
@@ -34,7 +36,7 @@ def calc_auc(all_sets, class_threshold, simi_threshold):
 	true_labels = get_true_labels(all_sets, class_threshold)
 	predicted_probs = get_probs(all_sets, class_threshold)
 
-	rs = cal_metrics(true_labels, predicted_probs, simi_threshold)
+	rs = calc_metrics(true_labels, predicted_probs, simi_threshold)
 	return rs
 
 
@@ -62,7 +64,7 @@ def get_probs(all_sets, class_threshold):
 	return predicted_probs
 
 
-def cal_metrics(true_labels, predicted_probs, simi_threshold):
+def calc_metrics(true_labels, predicted_probs, simi_threshold):
 	predicted_labels = [1 if prob >= simi_threshold else 0 for prob in predicted_probs]
 
 	precision = precision_score(true_labels, predicted_labels)
@@ -149,11 +151,23 @@ def calc_all_pr(all_sets):
 	return recall_dict, precision_dict
 
 
+def calc_cr(all_sets):
+	true_labels = []
+	predicted_labels = []
+
+	for cur_pair in all_sets:
+		true_labels.append(cur_pair["real_distance"])
+		predicted_labels.append(cur_pair["predict_class"])
+
+	print("\nClassification Report:")
+	print(classification_report(true_labels, predicted_labels))
+
+
 
 if __name__ == "__main__":
 	# rs_file = sys.argv[1]
-	# rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/result/20240130_205512.best_result/predict_result.validate.txt.20240130_205512"
-	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/result/20240130_205512.best_result/predict_result.excluded_validate.txt.20240130_205512"
+	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/result/20240130_205512.best_result/predict_result.validate.txt.20240130_205512"
+	# rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/result/20240130_205512.best_result/predict_result.excluded_validate.txt.20240130_205512"
 	all_sets = load_all_rs(rs_file)
 	recall_dict, precision_dict = calc_all_pr(all_sets)
 	print("Precision and Recall for all categories:")
@@ -163,4 +177,6 @@ if __name__ == "__main__":
 	rs = calc_auc(all_sets, class_threshold = 1, simi_threshold = 0.7)
 	print("\nMetrics of main module:")
 	print(json.dumps(rs))
+
+	calc_cr(all_sets)
 
