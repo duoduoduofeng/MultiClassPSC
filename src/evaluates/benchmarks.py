@@ -88,12 +88,12 @@ def load_simis(blast_sim_file):
 
 	# Calculate similarity.
 	rs = {}
-	class_threshold = 1
-	simi_threshold = 0.7
-	true_labels = get_true_labels(all_sets, class_threshold)
-	rs["blast"] = blast_metrics(all_sets, true_labels, simi_threshold)
-	rs["nw"] = nw_metrics(all_sets, true_labels, simi_threshold)
-	rs["sw"] = sw_metrics(all_sets, true_labels, simi_threshold)
+	# class_threshold = 1
+	# simi_threshold = 0.4
+	true_labels = get_true_labels(all_sets, class_threshold=1)
+	rs["blast"] = blast_metrics(all_sets, true_labels, simi_threshold=0.5)
+	rs["nw"] = nw_metrics(all_sets, true_labels, simi_threshold=0.4)
+	rs["sw"] = sw_metrics(all_sets, true_labels, simi_threshold=0.1)
 
 	print("Metrics of different benchmark.")
 	print(json.dumps(rs))
@@ -231,7 +231,7 @@ if __name__ == "__main__":
 	
 	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/data/20240130_205512.best_data/sample_proteins_dataset.validate.txt.best"
 
-	calc_whole_blast_sim(validate_file, blast_sim_file)
-	# load_simis(blast_sim_file)
+	# calc_whole_blast_sim(validate_file, blast_sim_file)
+	load_simis(blast_sim_file)
 
 

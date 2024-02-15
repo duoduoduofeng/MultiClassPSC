@@ -1,53 +1,118 @@
 #!/bin/bash
 import json
 import sys
+from sklearn.metrics import precision_score, recall_score, roc_auc_score
 
 
-def load_rs(rs_file):
-	recall_dict = {}
-	precision_dict = {}
+def load_all_rs(rs_file):
+	field_names = []
+	all_sets = []
 
 	with open(rs_file, 'r') as fin:
 		row_num = 0
 		for line in fin:
 			row_num += 1
-
-			if row_num == 1:
-				continue
+			cur_pro = {}
 
 			parts = line.strip().split("\t")
-			real_distance = int(parts[4])
-			discrete_predict_distance = int(parts[6])
 
-			isright = 0
-			if real_distance == discrete_predict_distance:
-				isright = 1
-
-			# recall_dict statistics
-			if real_distance not in recall_dict:
-				recall_dict[real_distance] = {}
-
-			if isright == 1:
-				if "right" not in recall_dict[real_distance]:
-					recall_dict[real_distance]["right"] = 0
-				recall_dict[real_distance]["right"] += 1
+			if row_num == 1:
+				field_names = parts
+				continue
 			else:
-				if "wrong" not in recall_dict[real_distance]:
-					recall_dict[real_distance]["wrong"] = 0
-				recall_dict[real_distance]["wrong"] += 1
+				for i in range(0, len(parts)):
+					cur_pro[field_names[i]] = parts[i]
+				cur_pro["real_distance"] = int(cur_pro["real_distance"])
+				cur_pro["predict_class"] = int(cur_pro["predict_class"])
 
-			# precision_dict statistics
-			if discrete_predict_distance not in precision_dict:
-				precision_dict[discrete_predict_distance] = {}
+			all_sets.append(cur_pro)
 
-			if isright == 1:
-				if "right" not in precision_dict[discrete_predict_distance]:
-					precision_dict[discrete_predict_distance]["right"] = 0
-				precision_dict[discrete_predict_distance]["right"] += 1
-			else:
-				if "wrong" not in precision_dict[discrete_predict_distance]:
-					precision_dict[discrete_predict_distance]["wrong"] = 0
-				precision_dict[discrete_predict_distance]["wrong"] += 1
+	return all_sets
+
+
+def calc_auc(all_sets, class_threshold, simi_threshold):
+	true_labels = get_true_labels(all_sets, class_threshold)
+	predicted_probs = get_probs(all_sets, class_threshold)
+
+	rs = cal_metrics(true_labels, predicted_probs, simi_threshold)
+	return rs
+
+
+def get_true_labels(all_sets, class_threshold):
+	true_labels = []
+
+	for cur_pair in all_sets:
+		distance = cur_pair["real_distance"]
+		label = 1 if distance <= class_threshold else 0
+		true_labels.append(label)
+
+	return true_labels
+
+
+def get_probs(all_sets, class_threshold):
+	predicted_probs = []
+
+	for cur_pair in all_sets:
+		predict_distance = json.loads(cur_pair["predict_distance"])
+		prob = 0
+		for i in range(class_threshold + 1):
+			prob += predict_distance[i]
+		predicted_probs.append(prob)
+
+	return predicted_probs
+
+
+def cal_metrics(true_labels, predicted_probs, simi_threshold):
+	predicted_labels = [1 if prob >= simi_threshold else 0 for prob in predicted_probs]
+
+	precision = precision_score(true_labels, predicted_labels)
+	recall = recall_score(true_labels, predicted_labels)
+	auc = roc_auc_score(true_labels, predicted_probs)
+
+	rs = {}
+	rs["precision"] = round(precision, 2)
+	rs["recall"] = round(recall, 2)
+	rs["auc"] = round(auc, 2)
+	return rs
+
+
+def calc_all_pr(all_sets):
+	recall_dict = {}
+	precision_dict = {}
+
+	for cur_pair in all_sets:
+		real_distance = cur_pair["real_distance"]
+		discrete_predict_distance = cur_pair["predict_class"]
+
+		isright = 0
+		if real_distance == discrete_predict_distance:
+			isright = 1
+
+		# recall_dict statistics
+		if real_distance not in recall_dict:
+			recall_dict[real_distance] = {}
+
+		if isright == 1:
+			if "right" not in recall_dict[real_distance]:
+				recall_dict[real_distance]["right"] = 0
+			recall_dict[real_distance]["right"] += 1
+		else:
+			if "wrong" not in recall_dict[real_distance]:
+				recall_dict[real_distance]["wrong"] = 0
+			recall_dict[real_distance]["wrong"] += 1
+
+		# precision_dict statistics
+		if discrete_predict_distance not in precision_dict:
+			precision_dict[discrete_predict_distance] = {}
+
+		if isright == 1:
+			if "right" not in precision_dict[discrete_predict_distance]:
+				precision_dict[discrete_predict_distance]["right"] = 0
+			precision_dict[discrete_predict_distance]["right"] += 1
+		else:
+			if "wrong" not in precision_dict[discrete_predict_distance]:
+				precision_dict[discrete_predict_distance]["wrong"] = 0
+			precision_dict[discrete_predict_distance]["wrong"] += 1
 
 	whole_right = 0
 	whole_wrong = 0
@@ -84,8 +149,18 @@ def load_rs(rs_file):
 	return recall_dict, precision_dict
 
 
+
 if __name__ == "__main__":
-	rs_file = sys.argv[1]
-	recall_dict, precision_dict = load_rs(rs_file)
+	# rs_file = sys.argv[1]
+	# rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/result/20240130_205512.best_result/predict_result.validate.txt.20240130_205512"
+	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/result/20240130_205512.best_result/predict_result.excluded_validate.txt.20240130_205512"
+	all_sets = load_all_rs(rs_file)
+	recall_dict, precision_dict = calc_all_pr(all_sets)
+	print("Precision and Recall for all categories:")
 	print(json.dumps(recall_dict))
 	print(json.dumps(precision_dict))
+
+	rs = calc_auc(all_sets, class_threshold = 1, simi_threshold = 0.7)
+	print("\nMetrics of main module:")
+	print(json.dumps(rs))
+
