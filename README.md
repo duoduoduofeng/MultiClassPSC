@@ -1,5 +1,5 @@
 ## Introduction
-This project is similar to ProteinStructureClassification, but treat the problem as a multi classification.
+This project implements a Protein Distance Model (PDM) to predict distances between protein pairs according to the SCOP (Structural Classification of Proteins) standards. Combined with our aggregation strategy, it can ultimately predict the category of a single protein within SCOP. The primary objective of this model is to enhance the accuracy and precision of protein structure classification.
 
 ## Architecture
 - 📁 **data/** - Datasets downloaded from official SCOP website.
