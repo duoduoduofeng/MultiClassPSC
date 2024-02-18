@@ -234,8 +234,8 @@ if __name__ == "__main__":
 
 
 
-	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/9.txt"
-	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/9.txt"
+	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/10.txt"
+	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/10.txt"
 	
 	calc_whole_blast_sim(validate_file, blast_sim_file)
 	load_simis(blast_sim_file)
