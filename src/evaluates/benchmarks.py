@@ -4,7 +4,8 @@ from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
 from Bio import pairwise2
 from Bio.Align import substitution_matrices
-from sklearn.metrics import precision_score, recall_score, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, f1_score
+
 
 import os
 import json
@@ -214,24 +215,26 @@ def get_probs(all_sets, sim_filed):
 def cal_metrics(true_labels, predicted_probs, simi_threshold):
 	predicted_labels = [1 if prob >= simi_threshold else 0 for prob in predicted_probs]
 
+	accuracy = accuracy_score(true_labels, predicted_labels)
 	precision = precision_score(true_labels, predicted_labels)
 	recall = recall_score(true_labels, predicted_labels)
 	auc = roc_auc_score(true_labels, predicted_probs)
+	# f1 = f1_score(true_labels, predicted_probs)
 
 	rs = {}
+	rs["accuracy"] = round(accuracy, 2)
 	rs["precision"] = round(precision, 2)
 	rs["recall"] = round(recall, 2)
 	rs["auc"] = round(auc, 2)
+	# rs["f1"] = round(f1, 2)
 	return rs
 
 
 if __name__ == "__main__":
-	# validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/datasets/trial/data/sample_proteins_dataset.validate.txt"
-	blast_sim_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/src/evaluates/test.blast_sim"
+	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/7.txt"
+	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/7.txt"
 	
-	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/data/20240130_205512.best_data/sample_proteins_dataset.validate.txt.best"
-
-	# calc_whole_blast_sim(validate_file, blast_sim_file)
+	calc_whole_blast_sim(validate_file, blast_sim_file)
 	load_simis(blast_sim_file)
 
 
