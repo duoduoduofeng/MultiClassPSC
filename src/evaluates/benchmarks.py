@@ -222,8 +222,20 @@ def cal_metrics(true_labels, predicted_probs, simi_threshold):
 
 
 if __name__ == "__main__":
-	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/8.txt"
-	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/8.txt"
+	
+	# folder_name = "bothin"
+	# for i in range(10):
+	# 	file_name = i + 1
+	# 	validate_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/{folder_name}/{file_name}.txt"
+	# 	blast_sim_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/{folder_name}/{file_name}.txt"
+	
+	# 	calc_whole_blast_sim(validate_file, blast_sim_file)
+	# 	load_simis(blast_sim_file)
+
+
+
+	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/9.txt"
+	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/9.txt"
 	
 	calc_whole_blast_sim(validate_file, blast_sim_file)
 	load_simis(blast_sim_file)
