@@ -14,7 +14,7 @@ import json
 def calc_whole_blast_sim(validate_file, blast_sim_file):
 	field_names = []
 
-	# 保存序列到文件
+	# Save the sequences into a temp file.
 	query_seq_file = "query.fasta"
 	subject_seq_file = "subject.fasta"
 	output_file = "blast_output.xml"
@@ -101,11 +101,9 @@ def load_simis(blast_sim_file):
 
 
 def calc_blast_sim(query_seq_file, subject_seq_file, output_file):
-	# 设置BLAST命令行
 	blastp_cline = NcbiblastpCommandline(query=query_seq_file, 
 		subject=subject_seq_file, outfmt=5, out=output_file)
 
-	# 执行BLAST
 	stdout, stderr = blastp_cline()
 
 
@@ -113,11 +111,11 @@ def parse_record(output_file, flag):
 	with open(output_file, 'r') as fin:
 		blast_record = NCBIXML.read(fin)
 
-		# 存储所有比对的身份值和比对长度
+		# Store all matching identity values and matching lengths.
 		identities = []
 		align_lengths = []
 
-		# 获取所有比对的身份值和比对长度
+		# Retrieve all matching identity values and matching lengths.
 		for alignment in blast_record.alignments:
 			for hsp in alignment.hsps:
 				alignment_length = hsp.align_length
@@ -125,7 +123,7 @@ def parse_record(output_file, flag):
 				identities.append(identity)
 				align_lengths.append(alignment_length)
 
-		# 计算加权平均的 per identity
+		# Calculate the weighted average per identity.
 		if identities:
 			total_identity = sum(identity * align_length for identity, align_length in zip(identities, align_lengths))
 			total_align_length = sum(align_lengths)
@@ -139,22 +137,16 @@ def parse_record(output_file, flag):
 
 
 def calc_nw_sw(seq1, seq2):
-	# 获取BLOSUM62打分矩阵
 	matrix = substitution_matrices.load('BLOSUM62')
 
-	# 全局对齐 - Needleman-Wunsch算法
 	global_alignment = pairwise2.align.globalds(seq1, seq2, matrix, -10, -0.5)[0]  # gap开启和扩展惩罚
-
-	# 局部对齐 - Smith-Waterman算法
 	local_alignment = pairwise2.align.localds(seq1, seq2, matrix, -10, -0.5)[0]
 
-	# 计算相似度值
 	def calculate_similarity(alignment, length):
 	    score, max_score = alignment.score, length * matrix[('A', 'A')]  # 假设最大得分为序列长度乘以最高单个匹配得分
 	    similarity = score / max_score
 	    return similarity
 
-	# 计算全局和局部对齐的相似度
 	global_similarity = calculate_similarity(global_alignment, min(len(seq1), len(seq2)))
 	local_similarity = calculate_similarity(local_alignment, min(len(seq1), len(seq2)))
 	global_similarity = round(global_similarity, 2)
@@ -181,11 +173,10 @@ def sw_metrics(all_sets, true_labels, simi_threshold):
 
 
 def max_norm(data):
-	# 找到列表中的最大值和最小值
 	min_val = min(data)
 	max_val = max(data)
 
-	# 对列表进行最大-最小归一化处理
+	# Perform min-max normalization.
 	normalized_data = [(x - min_val) / (max_val - min_val) for x in data]
 
 	return normalized_data
@@ -231,8 +222,8 @@ def cal_metrics(true_labels, predicted_probs, simi_threshold):
 
 
 if __name__ == "__main__":
-	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/7.txt"
-	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/7.txt"
+	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/8.txt"
+	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/8.txt"
 	
 	calc_whole_blast_sim(validate_file, blast_sim_file)
 	load_simis(blast_sim_file)
