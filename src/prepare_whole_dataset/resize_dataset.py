@@ -28,7 +28,7 @@ def count_by_dis(input_file):
 				continue
 
 			parts = line.strip().split("\t")
-			dis = int(parts[2])
+			dis = float(parts[2])
 			if dis not in stat_dict:
 				stat_dict[dis] = 0
 			stat_dict[dis] += 1
@@ -57,7 +57,7 @@ def sample_largest_set(input_file, output_file, theseed = 2024):
 	largest_key = list(stat_dict.keys())[0]
 	second_largest_key = list(stat_dict.keys())[1]
 
-	sample_size = stat_dict[second_largest_key] * 2
+	sample_size = stat_dict[second_largest_key]
 	probability = float(sample_size / stat_dict[largest_key])
 
 	with open(input_file, 'r') as fin, open(output_file, 'w') as fout:
@@ -79,10 +79,11 @@ def sample_largest_set(input_file, output_file, theseed = 2024):
 			# standardize
 			ref_dict = {
 				0: 0,
-				1: 0,
-				2: 1,
-				4: 2,
-				8: 3
+				1: 1,
+				2: 2,
+				4: 3,
+				8: 4,
+				16: 5
 			}
 			parts[2] = str(ref_dict[dis])
 			line = "\t".join(parts)
@@ -101,9 +102,77 @@ def sample_largest_set(input_file, output_file, theseed = 2024):
 	print(f"Tailored the original file {input_file} to {output_file}. \nThe statistic is now: {json.dumps(new_stat_dict)}")
 
 
+# The amount of pairs with distance 8 & 16 is too large, sample it to the third large set size.
+def sample_largest_two_set(input_file, output_file, theseed = 2024):
+	random.seed(theseed)
+	
+	stat_dict = count_by_dis(input_file)
+	print(f"The statistic by distance for the input file: {json.dumps(stat_dict)}.\n")
+
+	# The key with the largest amount
+	largest_key = list(stat_dict.keys())[0]
+	second_largest_key = list(stat_dict.keys())[1]
+	third_largest_key = list(stat_dict.keys())[2]
+
+	sample_size = stat_dict[third_largest_key]
+	probability = float(sample_size / stat_dict[largest_key])
+
+	second_sample_size = stat_dict[third_largest_key]
+	second_probability = float(second_sample_size / stat_dict[second_largest_key])
+
+	with open(input_file, 'r') as fin, open(output_file, 'w') as fout:
+		row_num = 0
+		for line in fin:
+			row_num += 1
+
+			if row_num == 1:
+				fout.write(line)
+				continue
+
+			parts = line.strip().split("\t")
+			dis = int(parts[2])
+
+			# Filter too long sequences.
+			if len(parts[3]) > 500 or len(parts[4]) > 500:
+				continue
+
+			# standardize
+			ref_dict = {
+				0: 0,
+				1: 1,
+				2: 2,
+				4: 3,
+				8: 4,
+				16: 5
+			}
+			parts[2] = str(ref_dict[dis])
+			line = "\t".join(parts)
+			line = f"{line}\n"
+
+			if dis != largest_key and dis != second_largest_key:
+				fout.write(line)
+			else:
+				if sample_size == 0 and second_sample_size == 0:
+					continue
+				
+				if dis == largest_key:
+					if random.random() < probability:
+						fout.write(line)
+						sample_size -= 1
+				elif dis == second_largest_key:
+					if random.random() < second_probability:
+						fout.write(line)
+						second_sample_size -= 1
+
+	new_stat_dict = count_by_dis(output_file)
+	print(f"Tailored the original file {input_file} to {output_file}. \nThe statistic is now: {json.dumps(new_stat_dict)}")
+
+
+
 if __name__ == "__main__":
 	input_file = sys.argv[1]
 	output_file = sys.argv[2]
 	theseed = 2024
-	sample_largest_set(input_file, output_file, theseed)
+	# sample_largest_set(input_file, output_file, theseed)
+	sample_largest_two_set(input_file, output_file, theseed)
 

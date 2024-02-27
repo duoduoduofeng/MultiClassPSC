@@ -20,17 +20,18 @@ if __name__ == "__main__":
     for i in range(10):
         file_no = i + 1
         
-        trained_model = "20240130_205512"
+        trainset_dir = "try_cl_1000003"
+        trained_model = "20240226_162531"
         
         validate_dataset_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/{file_no}.txt"
-        predict_result_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/{trained_model}/neither/{file_no}.txt"
-        model_save_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/model_bak/MultiClassPSC/generated_data/datasets/try_cl_1000001.5class/models/trained_model.dict.{trained_model}"
+        predict_result_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/{trainset_dir}/{trained_model}/neither/{file_no}.txt"
+        model_save_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/datasets/{trainset_dir}/models/trained_model.dict.{trained_model}"
         predict(model_save_file, validate_dataset_file, predict_result_file, the_device, class_num)
 
         validate_dataset_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/onlyone/{file_no}.txt"
-        predict_result_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/{trained_model}/onlyone/{file_no}.txt"
+        predict_result_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/{trainset_dir}/{trained_model}/onlyone/{file_no}.txt"
         predict(model_save_file, validate_dataset_file, predict_result_file, the_device, class_num)
 
         validate_dataset_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/bothin/{file_no}.txt"
-        predict_result_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/{trained_model}/bothin/{file_no}.txt"
+        predict_result_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/{trainset_dir}/{trained_model}/bothin/{file_no}.txt"
         predict(model_save_file, validate_dataset_file, predict_result_file, the_device, class_num)

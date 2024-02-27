@@ -130,7 +130,8 @@ def stat_lineage(reserved_proteins):
 """
 Sample the ranged proteins.
 """
-def sample_prots(reserved_proteins, repre_num_threshold = 5, nodename = "TP", node_threshold = "4", theseed = 2024):
+def sample_prots(reserved_proteins, repre_num_threshold = 5, nodename = "TP", \
+		node_threshold = "4", theseed = 2024, if_filter = True):
 	repre_prot_dict = {}
 	prots_count = 0
 	random.seed(theseed)
@@ -138,8 +139,9 @@ def sample_prots(reserved_proteins, repre_num_threshold = 5, nodename = "TP", no
 	for thekey in reserved_proteins:
 		info = reserved_proteins[thekey]
 		
-		if info[nodename] != node_threshold:
-			continue
+		if if_filter:
+			if info[nodename] != node_threshold:
+				continue
 		
 		prots_count += 1
 		# Merge the pdb_chain_ids under the same representatives.
@@ -154,13 +156,17 @@ def sample_prots(reserved_proteins, repre_num_threshold = 5, nodename = "TP", no
 	validate_keys = [] # with some training proteins inside.
 	train_keys = []
 	for rep_id in repre_prot_dict:
+		# if the size of a representative is too large, sample it to target size.
 		if len(repre_prot_dict[rep_id]) > repre_num_threshold:
-			cur_prot_list = random.sample(repre_prot_dict[rep_id], repre_num_threshold)
+			sample_size = repre_num_threshold
+			# sample_size = 2
+
+			cur_prot_list = random.sample(repre_prot_dict[rep_id], sample_size)
 			cur_excluded_prot_list = [item for item in repre_prot_dict[rep_id] if item not in cur_prot_list]
 			
 			# If there are too many excluded proteins, sample again for the validate set.
 			if len(cur_excluded_prot_list) > repre_num_threshold:
-				sampled_cur_excluded_prot_list = random.sample(cur_excluded_prot_list, repre_num_threshold)
+				sampled_cur_excluded_prot_list = random.sample(cur_excluded_prot_list, sample_size)
 				excluded_validate_keys.extend(sampled_cur_excluded_prot_list)
 			else:
 				excluded_validate_keys.extend(cur_excluded_prot_list)
@@ -366,9 +372,12 @@ if __name__ == "__main__":
 
 	### Step 4, sample the proteins, mainly sample by representatives.
 	# tp_3用的repre_num_threshold是5
+	# train_keys, validate_keys, excluded_validate_keys = \
+	# 	sample_prots(reserved_proteins, repre_num_threshold = 5, nodename = "CL", 
+	# 		node_threshold = "1000001", theseed = 2024)
 	train_keys, validate_keys, excluded_validate_keys = \
 		sample_prots(reserved_proteins, repre_num_threshold = 5, nodename = "CL", 
-			node_threshold = "1000001", theseed = 2024)
+			node_threshold = "1000001", theseed = 2024, if_filter = False)
 
 	### Step 5, load the sequences
 	sequences_file_dir = "../../generated_data/whole_pdbs/sequences"
@@ -376,12 +385,12 @@ if __name__ == "__main__":
 
 	### Step 6, when build pair, remember to filter the pair with the same sequences (or key names)
 	# awk -F '\t' '{print $3}' sample_proteins_dataset.train.txt | sort | uniq -c
-	target = "try_cl_1000001"
-	train_set_file = f"../../generated_data/whole_pdbs/datasets/{target}/sample_proteins_dataset.train.txt"
+	target = "try_mix_2"
+	train_set_file = f"../../generated_data/whole_pdbs/datasets/{target}/sample_proteins_dataset.train.txt.original"
 	build_pair2(reserved_proteins, train_keys, seqs, train_set_file)
-	validate_set_file = f"../../generated_data/whole_pdbs/datasets/{target}/sample_proteins_dataset.validate.txt"
+	validate_set_file = f"../../generated_data/whole_pdbs/datasets/{target}/sample_proteins_dataset.validate.txt.original"
 	build_pair2(reserved_proteins, validate_keys, seqs, validate_set_file)
-	excluded_validate_set_file = f"../../generated_data/whole_pdbs/datasets/{target}/sample_proteins_dataset.excluded_validate.txt"
+	excluded_validate_set_file = f"../../generated_data/whole_pdbs/datasets/{target}/sample_proteins_dataset.excluded_validate.txt.original"
 	build_pair2(reserved_proteins, excluded_validate_keys, seqs, excluded_validate_set_file)
 
 

@@ -12,7 +12,7 @@ from model.process import *
 
 
 if __name__ == "__main__":
-    common_path = "../generated_data/datasets/try_cl_1000001"
+    common_path = "../generated_data/datasets/try_mix"
     
     ### 1. Training
     dataset_file = f"{common_path}/data/sample_proteins_dataset.train.txt"
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     print(f"model_save_file: {model_save_file}, \ntrain_log: {train_log}\n")
     
     the_batch_size = 1500
-    class_num = 5
+    class_num = 6
     train(dataset_file, model_save_file, train_log, the_device, epoch_times, the_batch_size, class_num)
 
     ### 2. Prediction
