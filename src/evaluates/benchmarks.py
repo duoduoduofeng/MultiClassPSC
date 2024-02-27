@@ -88,16 +88,49 @@ def load_simis(blast_sim_file):
 			all_sets.append(cur_pro)
 
 	# Calculate similarity.
-	rs = {}
-	# class_threshold = 1
-	# simi_threshold = 0.4
-	true_labels = get_true_labels(all_sets, class_threshold=1)
-	rs["blast"] = blast_metrics(all_sets, true_labels, simi_threshold=0.5)
-	rs["nw"] = nw_metrics(all_sets, true_labels, simi_threshold=0.4)
-	rs["sw"] = sw_metrics(all_sets, true_labels, simi_threshold=0.1)
+	class_threshold = 1
 
-	print("Metrics of different benchmark.")
-	print(json.dumps(rs))
+	# NW
+	print("\n\n 2 ===== ===== ===== Metrics of NW:")
+	for simi_threshold in [i / 10 for i in range(1, 10)]:
+		true_labels = get_true_labels(all_sets, class_threshold)
+		rs = nw_metrics(all_sets, true_labels, simi_threshold)
+		print(json.dumps(rs))
+
+		auc = rs["auc"]
+		accuracy = rs["accuracy"]
+		precision = rs["precision"]
+		recall = rs["recall"]
+		f1 = rs["f1"]
+		print(f" & NW & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
+
+	# SW
+	print("\n\n 2 ===== ===== ===== Metrics of SW:")
+	for simi_threshold in [i / 10 for i in range(1, 10)]:
+		true_labels = get_true_labels(all_sets, class_threshold)
+		rs = sw_metrics(all_sets, true_labels, simi_threshold)
+		print(json.dumps(rs))
+
+		auc = rs["auc"]
+		accuracy = rs["accuracy"]
+		precision = rs["precision"]
+		recall = rs["recall"]
+		f1 = rs["f1"]
+		print(f" & SW & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
+
+	# Blast
+	print("\n\n 1 ===== ===== ===== Metrics of Blast:")
+	for simi_threshold in [i / 10 for i in range(1, 10)]:
+		true_labels = get_true_labels(all_sets, class_threshold)
+		rs = blast_metrics(all_sets, true_labels, simi_threshold)
+		print(json.dumps(rs))
+
+		auc = rs["auc"]
+		accuracy = rs["accuracy"]
+		precision = rs["precision"]
+		recall = rs["recall"]
+		f1 = rs["f1"]
+		print(f" & Blast & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
 
 
 def calc_blast_sim(query_seq_file, subject_seq_file, output_file):
@@ -210,14 +243,14 @@ def cal_metrics(true_labels, predicted_probs, simi_threshold):
 	precision = precision_score(true_labels, predicted_labels)
 	recall = recall_score(true_labels, predicted_labels)
 	auc = roc_auc_score(true_labels, predicted_probs)
-	# f1 = f1_score(true_labels, predicted_probs)
+	f1 = f1_score(true_labels, predicted_labels)
 
 	rs = {}
 	rs["accuracy"] = round(accuracy, 2)
 	rs["precision"] = round(precision, 2)
 	rs["recall"] = round(recall, 2)
 	rs["auc"] = round(auc, 2)
-	# rs["f1"] = round(f1, 2)
+	rs["f1"] = round(f1, 2)
 	return rs
 
 
@@ -232,12 +265,21 @@ if __name__ == "__main__":
 	# 	calc_whole_blast_sim(validate_file, blast_sim_file)
 	# 	load_simis(blast_sim_file)
 
+	# folder_name = "onlyone"
+	# for i in range(10):
+	# 	file_name = i + 1
+	# 	validate_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/{folder_name}/{file_name}.txt"
+	# 	blast_sim_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/{folder_name}/{file_name}.txt"
+	
+	# 	calc_whole_blast_sim(validate_file, blast_sim_file)
+	# 	load_simis(blast_sim_file)
 
 
-	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/neither/10.txt"
+
+	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/bothin/1.txt"
 	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/10.txt"
 	
-	calc_whole_blast_sim(validate_file, blast_sim_file)
+	# calc_whole_blast_sim(validate_file, blast_sim_file)
 	load_simis(blast_sim_file)
 
 

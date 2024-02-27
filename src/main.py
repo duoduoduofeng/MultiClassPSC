@@ -16,7 +16,7 @@ if __name__ == "__main__":
     
     ### 1. Training
     dataset_file = f"{common_path}/data/sample_proteins_dataset.train.txt"
-    epoch_times = 200
+    epoch_times = 100
 
     timestamp = time.time()
     datetime_object = datetime.fromtimestamp(timestamp)
@@ -29,8 +29,8 @@ if __name__ == "__main__":
     train_log = f"{common_path}/logs/train.log.{dt_object}"
     print(f"model_save_file: {model_save_file}, \ntrain_log: {train_log}\n")
     
-    the_batch_size = 3000
-    class_num = 4
+    the_batch_size = 1500
+    class_num = 5
     train(dataset_file, model_save_file, train_log, the_device, epoch_times, the_batch_size, class_num)
 
     ### 2. Prediction

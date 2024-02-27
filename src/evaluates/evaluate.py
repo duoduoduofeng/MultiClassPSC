@@ -67,14 +67,18 @@ def get_probs(all_sets, class_threshold):
 def calc_metrics(true_labels, predicted_probs, simi_threshold):
 	predicted_labels = [1 if prob >= simi_threshold else 0 for prob in predicted_probs]
 
+	accuracy = accuracy_score(true_labels, predicted_labels)
 	precision = precision_score(true_labels, predicted_labels)
 	recall = recall_score(true_labels, predicted_labels)
 	auc = roc_auc_score(true_labels, predicted_probs)
+	f1 = f1_score(true_labels, predicted_labels)
 
 	rs = {}
+	rs["accuracy"] = round(accuracy, 2)
 	rs["precision"] = round(precision, 2)
 	rs["recall"] = round(recall, 2)
 	rs["auc"] = round(auc, 2)
+	rs["f1"] = round(f1, 2)
 	return rs
 
 
@@ -167,16 +171,27 @@ def calc_cr(all_sets):
 if __name__ == "__main__":
 	# rs_file = sys.argv[1]
 	
-	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/20240130_205512/neither/1.txt"
+	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/20240130_205512/neither/10.txt"
 	all_sets = load_all_rs(rs_file)
 	recall_dict, precision_dict = calc_all_pr(all_sets)
 	print("Precision and Recall for all categories:")
 	print(json.dumps(recall_dict))
 	print(json.dumps(precision_dict))
 
-	rs = calc_auc(all_sets, class_threshold = 1, simi_threshold = 0.7)
-	print("\nMetrics of main module:")
-	print(json.dumps(rs))
+	class_threshold = 1
+	# simi_threshold = 0.8
+	
+	print("\n\nMetrics of binary module:")
+	for simi_threshold in [i / 10 for i in range(1, 10)]:
+		rs = calc_auc(all_sets, class_threshold, simi_threshold)
+		print(json.dumps(rs))
+
+		auc = rs["auc"]
+		accuracy = rs["accuracy"]
+		precision = rs["precision"]
+		recall = rs["recall"]
+		f1 = rs["f1"]
+		print(f" & PDM & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
 
 	calc_cr(all_sets)
 
