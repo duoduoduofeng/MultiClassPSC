@@ -114,10 +114,10 @@ def sample_largest_two_set(input_file, output_file, theseed = 2024):
 	second_largest_key = list(stat_dict.keys())[1]
 	third_largest_key = list(stat_dict.keys())[2]
 
-	sample_size = stat_dict[third_largest_key]
+	sample_size = stat_dict[third_largest_key] * 2
 	probability = float(sample_size / stat_dict[largest_key])
 
-	second_sample_size = stat_dict[third_largest_key]
+	second_sample_size = stat_dict[third_largest_key] * 3
 	second_probability = float(second_sample_size / stat_dict[second_largest_key])
 
 	with open(input_file, 'r') as fin, open(output_file, 'w') as fout:

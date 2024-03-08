@@ -171,7 +171,7 @@ def calc_cr(all_sets):
 if __name__ == "__main__":
 	# rs_file = sys.argv[1]
 	
-	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/try_cl_1000003/20240226_162531/neither/1.txt"
+	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/try_cl_1000001.165w/20240226_141637/bothin/1.txt"
 	all_sets = load_all_rs(rs_file)
 	recall_dict, precision_dict = calc_all_pr(all_sets)
 	print("Precision and Recall for all categories:")
