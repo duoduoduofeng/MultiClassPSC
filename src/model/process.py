@@ -160,7 +160,7 @@ def predict(model_save_file, dataset_file, predict_result_file, the_device = "cp
             predict_class = predict_distance.index(max(predict_distance))
             
             line = f"{pro1}\t{pro2}\t{pro1_class}\t{pro2_class}\t{real_distance}\t{predict_distance}\t{predict_class}"
-            print(line)
+            # print(line)
             fout.write(f"{line}\n")
 
     print(f"\n=************= Finished predicting.\n")

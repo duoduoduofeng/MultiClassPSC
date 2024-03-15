@@ -1,6 +1,9 @@
 #!/bin/bash
 import json
 import sys
+import os
+import copy
+
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, f1_score
 from sklearn.metrics import classification_report, confusion_matrix
 
@@ -163,23 +166,70 @@ def calc_cr(all_sets):
 		true_labels.append(cur_pair["real_distance"])
 		predicted_labels.append(cur_pair["predict_class"])
 
-	print("\nClassification Report:")
-	print(classification_report(true_labels, predicted_labels))
+	# print("\nClassification Report:")
+	# print(classification_report(true_labels, predicted_labels))
+
+	cr = classification_report(true_labels, predicted_labels, output_dict=True)
+	return cr
 
 
 
-if __name__ == "__main__":
-	# rs_file = sys.argv[1]
+def display_avg(rs_dir, algo = "PDM", scenario = "bothin", class_threshold = 1):
+	metrics = {}
 	
-	rs_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/pdms/try_cl_1000001.165w/20240226_141637/bothin/1.txt"
-	all_sets = load_all_rs(rs_file)
-	recall_dict, precision_dict = calc_all_pr(all_sets)
-	print("Precision and Recall for all categories:")
-	print(json.dumps(recall_dict))
-	print(json.dumps(precision_dict))
+	for root, dirs, files in os.walk(rs_dir):
+		for thefile in files:
+			all_sets = load_all_rs(os.path.join(root, thefile))
 
-	class_threshold = 1
-	# simi_threshold = 0.8
+			cur_metrics = {}
+			max_f1 = -1.0
+			for simi_threshold in [i / 10 for i in range(1, 10)]:
+				rs = calc_auc(all_sets, class_threshold, simi_threshold)
+
+				f1 = rs["f1"]
+				if f1 <= max_f1:
+					continue
+
+				# Choose the one with maximum f1 score.
+				max_f1 = f1
+				cur_metrics["f1"] = f1
+				for met in ["auc", "accuracy", "precision", "recall"]:
+					cur_metrics[met] = rs[met]
+				cur_metrics["simi_threshold"] = simi_threshold
+
+			for met in ["auc", "accuracy", "precision", "recall", "f1", "simi_threshold"]:
+				if met not in metrics:
+					metrics[met] = []
+				metrics[met].append(cur_metrics[met])
+
+
+	avg_metrics = {}
+	for ele in metrics:
+		if len(metrics[ele]) == 0:
+			avg_metrics[ele] = 0
+		avg_metrics[ele] = sum(metrics[ele]) / len(metrics[ele])
+		avg_metrics[ele] = round(avg_metrics[ele], 2)
+
+	auc = avg_metrics["auc"]
+	# simi_threshold = avg_metrics["simi_threshold"]
+	accuracy = avg_metrics["accuracy"]
+	precision = avg_metrics["precision"]
+	recall = avg_metrics["recall"]
+	f1 = avg_metrics["f1"]
+	print(f" & {algo} & {auc} & {accuracy} & {precision} & {recall} & {f1} \\\\")
+
+	return avg_metrics
+
+
+
+def display_single(rs_file, algo = "PDM", class_threshold = 1):
+	all_sets = load_all_rs(rs_file)
+
+	if algo == "PDM":
+		recall_dict, precision_dict = calc_all_pr(all_sets)
+		print("Precision and Recall for all categories:")
+		print(json.dumps(recall_dict))
+		print(json.dumps(precision_dict))
 	
 	print("\n\nMetrics of binary module:")
 	for simi_threshold in [i / 10 for i in range(1, 10)]:
@@ -191,7 +241,76 @@ if __name__ == "__main__":
 		precision = rs["precision"]
 		recall = rs["recall"]
 		f1 = rs["f1"]
-		print(f" & PDM & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
+		print(f" & {algo} & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
 
-	calc_cr(all_sets)
+
+def display_single_cr(rs_file):
+	all_sets = load_all_rs(rs_file)
+	cr = calc_cr(all_sets)
+
+	# print(json.dumps(cr))
+	return cr
+
+
+
+def display_avg_cr(rs_dir):
+	metric_dicts = []
+	for root, dirs, files in os.walk(rs_dir):
+		for thefile in files:
+			rs_file = os.path.join(root, thefile)
+			print(f"Dealing {rs_file}.")
+			thecr = display_single_cr(rs_file)
+			metric_dicts.append(copy.deepcopy(thecr))
+
+
+	avg_metrics = {}
+	for cl in ["1", "2", "3", "4", "weighted avg"]:
+		for met in ["precision", "recall", "f1-score"]:
+			vs = []
+			for thedict in metric_dicts:
+				vs.append(thedict[cl][met])
+			if cl not in avg_metrics:
+				avg_metrics[cl] = {}
+			avg_metrics[cl][met] = round(sum(vs) / len(vs), 2)
+
+	# accuracy
+	vs = []
+	for thedict in metric_dicts:
+		vs.append(thedict["accuracy"])
+	avg_metrics["accuracy"] = round(sum(vs) / len(vs), 2)
+
+	# print(json.dumps(avg_metrics))
+	return avg_metrics
+
+
+if __name__ == "__main__":
+	# rs_file = sys.argv[1]
+	
+	subset_name = "cl_1000001"
+	base_dir = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result"
+	
+	scenario = "onlyone"
+	validation_size = 1000
+	# rs_file = f"{base_dir}/{subset_name}/result/{validation_size}/pdms/{scenario}/8.txt"
+	
+	###### Binary Classification
+	# for validation_size in [200, 400, 600, 800, 1000, 2000, 3000, 10000]:
+	# print("\n\n***************************************************")
+	# for scenario in ["bothin", "onlyone", "neither"]:
+	# 	rs_dir = f"{base_dir}/{subset_name}/result/{validation_size}/pdms/{scenario}"
+	# 	print(f"\n==== {validation_size} ==== {scenario} ====")
+	# 	print(f"{rs_dir}")
+	# 	display_avg(rs_dir, algo = "PDM", scenario = scenario, class_threshold=2)
+	# print("\n")
+
+
+	###### Multi-Classification
+	# single
+	# display_single_cr(rs_file)
+
+	# batch
+	rs_dir = f"{base_dir}/{subset_name}/result/{validation_size}/pdms/{scenario}"
+	display_avg_cr(rs_dir)
+
+
 

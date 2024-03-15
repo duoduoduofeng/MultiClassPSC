@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_a
 
 import os
 import json
+import sys
 
 
 def calc_whole_blast_sim(validate_file, blast_sim_file):
@@ -61,7 +62,6 @@ def calc_whole_blast_sim(validate_file, blast_sim_file):
 	os.remove(subject_seq_file)
 
 
-
 def load_simis(blast_sim_file):
 	field_names = []
 	all_sets = []
@@ -87,11 +87,90 @@ def load_simis(blast_sim_file):
 
 			all_sets.append(cur_pro)
 
-	# Calculate similarity.
-	class_threshold = 1
+	return all_sets
+
+
+def load_a_metric_rs(bench, all_sets, metrics, class_threshold = 1):
+	cur_metrics = {}
+	
+	max_f1 = -1.0
+	for simi_threshold in [i / 10 for i in range(1, 10)]:
+		true_labels = get_true_labels(all_sets, class_threshold)
+
+		if bench == "nw":
+			rs = nw_metrics(all_sets, true_labels, simi_threshold)
+		elif bench == "sw":
+			rs = sw_metrics(all_sets, true_labels, simi_threshold)
+		else:
+			rs = blast_metrics(all_sets, true_labels, simi_threshold)
+		
+		f1 = rs["f1"]
+		if f1 <= max_f1:
+			continue
+
+		# Choose the one with maximum f1 score.
+		max_f1 = f1
+		cur_metrics["f1"] = f1
+		for met in ["auc", "accuracy", "precision", "recall"]:
+			cur_metrics[met] = rs[met]
+		cur_metrics["simi_threshold"] = simi_threshold
+
+	for met in ["auc", "accuracy", "precision", "recall", "f1", "simi_threshold"]:
+		if met not in metrics:
+			metrics[met] = []
+		metrics[met].append(cur_metrics[met])
+
+
+def display_a_metric(bench, metrics):
+	avg_metrics = {}
+	for ele in metrics:
+		if len(metrics[ele]) == 0:
+			avg_metrics[ele] = 0
+		avg_metrics[ele] = sum(metrics[ele]) / len(metrics[ele])
+		avg_metrics[ele] = round(avg_metrics[ele], 2)
+
+	auc = avg_metrics["auc"]
+	accuracy = avg_metrics["accuracy"]
+	precision = avg_metrics["precision"]
+	recall = avg_metrics["recall"]
+	f1 = avg_metrics["f1"]
+	
+	print(f"\n\n ===== ===== ===== Metrics of {bench}:")
+	print(f" & {bench} & {auc} & {accuracy} & {precision} & {recall} & {f1} \\\\")
+
+	return avg_metrics
+
+
+def display_avg(blast_sim_dir, class_threshold = 1):
+	the_nw_metrics = {}
+	the_sw_metrics = {}
+	the_blast_metrics = {}
+	
+	for root, dirs, files in os.walk(blast_sim_dir):
+		for thefile in files:
+			all_sets = load_simis(os.path.join(root, thefile))
+
+			# NW
+			load_a_metric_rs("nw", all_sets, the_nw_metrics, class_threshold)
+
+			# SW
+			load_a_metric_rs("sw", all_sets, the_sw_metrics, class_threshold)
+
+			# Blst
+			load_a_metric_rs("blast", all_sets, the_blast_metrics, class_threshold)
+
+	nw_avg_metrics = display_a_metric("NW", the_nw_metrics)
+	sw_avg_metrics = display_a_metric("SW", the_sw_metrics)
+	blast_avg_metrics = display_a_metric("BLAST", the_blast_metrics)
+
+	return nw_avg_metrics, sw_avg_metrics, blast_avg_metrics
+
+
+def display_single(blast_sim_file, class_threshold = 1):
+	all_sets = load_simis(blast_sim_file)
 
 	# NW
-	print("\n\n 2 ===== ===== ===== Metrics of NW:")
+	print("\n\n 1 ===== ===== ===== Metrics of NW:")
 	for simi_threshold in [i / 10 for i in range(1, 10)]:
 		true_labels = get_true_labels(all_sets, class_threshold)
 		rs = nw_metrics(all_sets, true_labels, simi_threshold)
@@ -119,7 +198,7 @@ def load_simis(blast_sim_file):
 		print(f" & SW & {auc} & {simi_threshold} & {accuracy} & {precision} & {recall} & {f1} \\\\")
 
 	# Blast
-	print("\n\n 1 ===== ===== ===== Metrics of Blast:")
+	print("\n\n 3 ===== ===== ===== Metrics of Blast:")
 	for simi_threshold in [i / 10 for i in range(1, 10)]:
 		true_labels = get_true_labels(all_sets, class_threshold)
 		rs = blast_metrics(all_sets, true_labels, simi_threshold)
@@ -235,7 +314,6 @@ def get_probs(all_sets, sim_filed):
 	return predicted_probs
 
 
-
 def cal_metrics(true_labels, predicted_probs, simi_threshold):
 	predicted_labels = [1 if prob >= simi_threshold else 0 for prob in predicted_probs]
 
@@ -256,30 +334,38 @@ def cal_metrics(true_labels, predicted_probs, simi_threshold):
 
 if __name__ == "__main__":
 	
-	# folder_name = "bothin"
-	# for i in range(10):
-	# 	file_name = i + 1
-	# 	validate_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/{folder_name}/{file_name}.txt"
-	# 	blast_sim_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/{folder_name}/{file_name}.txt"
+	base_dir = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result"
+	subset_name = "cl_1000000"
+	validation_size = 3000
 	
-	# 	calc_whole_blast_sim(validate_file, blast_sim_file)
-	# 	load_simis(blast_sim_file)
 
-	# folder_name = "onlyone"
-	# for i in range(10):
-	# 	file_name = i + 1
-	# 	validate_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/{folder_name}/{file_name}.txt"
-	# 	blast_sim_file = f"/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/{folder_name}/{file_name}.txt"
-	
-	# 	calc_whole_blast_sim(validate_file, blast_sim_file)
-	# 	load_simis(blast_sim_file)
+	######## CALCULATION #########
+	# Batch processing
+	# for scenario in ["bothin", "onlyone", "neither"]:
+	# 	for i in range(10):
+	# 		file_name = i + 1
+	# 		validate_file = f"{base_dir}/{subset_name}/testset/{validation_size}/{scenario}/{file_name}.txt"
+	# 		blast_sim_file = f"{base_dir}/{subset_name}/result/{validation_size}/benchmarks/{scenario}/{file_name}.txt"
+		
+	# 		calc_whole_blast_sim(validate_file, blast_sim_file)
+	# 		print(f"Finished calculating the benchmark metrics of file {validate_file}.")
 
-
-
-	validate_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/testset/bothin/1.txt"
-	blast_sim_file = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result/result/benchmarks/neither/10.txt"
-	
+	# Single file processing
+	# scenario = "onlyone"
+	# validate_file = f"{base_dir}/testset/{validation_size}/{scenario}/1.txt"
+	# Calculate the metrics, blast is the bottleneck.
 	# calc_whole_blast_sim(validate_file, blast_sim_file)
-	load_simis(blast_sim_file)
 
+
+	######### DISPLAY ############
+	# Average metrics
+	for scenario in ["bothin", "onlyone", "neither"]:
+		print(f"\n========== {validation_size} ========== {scenario} ===========")
+		blast_sim_dir = f"{base_dir}/{subset_name}/result/{validation_size}/benchmarks/{scenario}"
+		display_avg(blast_sim_dir, class_threshold=2)
+
+	# Metrics of a single file
+	# scenario = "onlyone"
+	# blast_sim_dir = f"{base_dir}/result/{validation_size}/benchmarks/{scenario}"
+	# display_single(blast_sim_file)
 
