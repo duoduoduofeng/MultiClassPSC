@@ -178,17 +178,86 @@ def plot_cr_accuracy(all_mets, plot_dir):
 	plt.savefig(plot_dir)
 
 
+def print_metrics(all_mets, metric):
+	scenario_map = {
+		"bothin": "I",
+		"onlyone": "II",
+		"neither": "III"
+	}
+	if metric != "accuracy":
+		for validation_size in [200, 400, 600, 800, 1000, 2000, 3000]:
+			size_start = 0
+			
+			for scenario in ["bothin", "onlyone", "neither"]:				
+				scenario_start = 0
+				for cl in ["1", "2", "3", "4", "weighted avg"]:
+					if size_start == 0:
+						if scenario_start == 0:
+							line = f"{validation_size} & {scenario_map[scenario]}"
+						else:
+							line = f" & "
+							
+					else:
+						if scenario_start == 0:
+							line = f" & {scenario_map[scenario]}"
+						else:
+							line = f" & "
+					
+					if cl != "weighted avg":
+						line = f"{line} & {cl}"
+					else:
+						line = f"{line} & w.t."
+					
+					for model in ["cl_1000000", "cl_1000001", "cl_1000002", "cl_1000003", "cl_1000004"]:
+						cur_metric = all_mets[model][validation_size][scenario][cl][metric]
+						line = f"{line} & {cur_metric}"
+					line = f"{line} \\\\"
+					print(f"{line}")
+
+					scenario_start += 1
+				
+				print("\\cline{2-8}")
+				size_start += 1
+			
+			print("\\hline\n")
+	else:
+		for validation_size in [200, 400, 600, 800, 1000, 2000, 3000]:
+			size_start = 0
+			
+			for scenario in ["bothin", "onlyone", "neither"]:				
+				if size_start == 0:
+					line = f"{validation_size} & {scenario_map[scenario]}"
+				else:
+					line = f" & {scenario_map[scenario]}"
+				
+				for model in ["cl_1000000", "cl_1000001", "cl_1000002", "cl_1000003", "cl_1000004"]:
+					cur_metric = all_mets[model][validation_size][scenario][metric]
+					line = f"{line} & {cur_metric}"
+				line = f"{line} \\\\"
+				print(f"{line}")
+				
+				print("\\cline{2-7}")
+				size_start += 1
+			
+			print("\\hline\n")
+
+
 if __name__ == "__main__":
 	base_dir = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/evaluation_result"
 	
+	# For binary classification with comparision to benchmarks.
 	# subset_name = "cl_1000001"
 	# plot_dir = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/pics"
 	# all_mets = obtain_metric_values(base_dir, subset_name)
 	# plot_metric(all_mets, "CL=1000001, 0-2 vs. 3-4", f"{plot_dir}/avg_metric_cl_1000001_2.png")
 
+	# For multiple classification.
 	plot_dir = "/Users/duoduo/Documents/lifeInCA/studyInTRU/2023Fall/graduate_project/other_psc/MultiClassPSC/generated_data/pics"
 	all_mets = obtain_cr_metric_values(base_dir)
-	plot_cr_metric(all_mets, "precision", f"{plot_dir}/avg_5_cl_precision.png")
-	plot_cr_metric(all_mets, "recall", f"{plot_dir}/avg_5_cl_recall.png")
-	plot_cr_metric(all_mets, "f1-score", f"{plot_dir}/avg_5_cl_f1.png")
-	plot_cr_accuracy(all_mets, f"{plot_dir}/avg_5_cl_accuracy.png")
+	# plot_cr_metric(all_mets, "precision", f"{plot_dir}/avg_5_cl_precision.png")
+	# plot_cr_metric(all_mets, "recall", f"{plot_dir}/avg_5_cl_recall.png")
+	# plot_cr_metric(all_mets, "f1-score", f"{plot_dir}/avg_5_cl_f1.png")
+	# plot_cr_accuracy(all_mets, f"{plot_dir}/avg_5_cl_accuracy.png")
+
+	# Print latex table data.
+	print_metrics(all_mets, metric = "accuracy")

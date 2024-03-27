@@ -119,7 +119,7 @@ def filter_multi_domains_protein(uniq_pros, uniq_pros_previous_file, merged_info
 """
 Stat the lineage distribution of the reserved proteins.
 """
-def stat_lineage(reserved_proteins):
+def stat_lineage(reserved_proteins, cl_name):
 	stats = {
 		"TP": {}, 
 		"CL": {},
@@ -130,7 +130,7 @@ def stat_lineage(reserved_proteins):
 	}
 	for thekey in reserved_proteins:
 		info = reserved_proteins[thekey]
-		if info["CL"] != "1000001":
+		if info["CL"] != cl_name:
 			continue
 		for node in ["rep_id", "TP", "CL", "CF", "SF", "FA"]:
 			if info[node] not in stats[node]:
@@ -141,15 +141,15 @@ def stat_lineage(reserved_proteins):
 	# print(json.dumps(stats))
 
 	for nodename in ["CF", "SF", "FA", "rep_id"]:
-		# plot_dis(stats, nodename)
-		# plot_dis(stats, nodename, 100)
-		# plot_dis(stats, nodename, 1000)
-		plot_scatter(stats, nodename)
+		plot_dis(stats, cl_name, nodename)
+		plot_dis(stats, cl_name, nodename, 100)
+		plot_dis(stats, cl_name, nodename, 1000)
+		# plot_scatter(stats, nodename)
 
 	# return stats
 
 
-def plot_dis(stats, nodename, th = 0):
+def plot_dis(stats, cl_name, nodename, th = 0):
 	# Data from the list	
 	data = list(stats[nodename].values())
 	# if filter
@@ -167,12 +167,12 @@ def plot_dis(stats, nodename, th = 0):
 	# plt.xticks(thebins)
 	plt.xlabel('Value')
 	plt.ylabel('Frequency')
-	plt.title(f"Distribution of protein count of different {nodename} in CL=1000001.")
+	plt.title(f"Distribution of protein count of different {nodename} in CL={cl_name}.")
 
 	# Saving the bar chart as an image
-	bar_chart_name = f"../../generated_data/statistics/{nodename}.cl_1000001.bar_chart.png"
+	bar_chart_name = f"../../generated_data/statistics/{nodename}.cl_{cl_name}.bar_chart.png"
 	if th > 0:
-		bar_chart_name = f"../../generated_data/statistics/{nodename}.cl_1000001.lt_{th}.bar_chart.png"
+		bar_chart_name = f"../../generated_data/statistics/{nodename}.cl_{cl_name}.lt_{th}.bar_chart.png"
 	plt.savefig(bar_chart_name)
 
 	# Calculating statistical measures
@@ -185,9 +185,9 @@ def plot_dis(stats, nodename, th = 0):
 	minv, q1, q3, maxv = np.percentile(data, [0, 25, 75, 100])
 
 	# Displaying statistical measures
-	stat_file = f"../../generated_data/statistics/{nodename}.cl_1000001.stats"
+	stat_file = f"../../generated_data/statistics/{nodename}.cl_{cl_name}.stats"
 	if th > 0:
-		stat_file = f"../../generated_data/statistics/{nodename}.cl_1000001.lt_{th}.stats"
+		stat_file = f"../../generated_data/statistics/{nodename}.cl_{cl_name}.lt_{th}.stats"
 	with open(stat_file, 'w') as fout:
 		fout.write(f"Mean: {mean_value}\n")
 		fout.write(f"Median: {median_value}\n")
@@ -255,4 +255,4 @@ if __name__ == "__main__":
 	reserved_proteins = filter_multi_domains_protein(uniq_pros, uniq_pros_previous_file, merged_info_file)
 
 	### Step 3, stat the reserved proteins lineage.
-	stats = stat_lineage(reserved_proteins)
+	stats = stat_lineage(reserved_proteins, cl_name = "1000004")
